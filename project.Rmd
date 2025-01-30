@@ -1,0 +1,378 @@
+---
+title: "Project: Analysis on US Health Insurance Cost"
+author: "Jenish, Suvid, Sakina"
+output:
+  pdf_document:
+    fig_height: 3.2
+    fig_width: 5
+    latex_engine: xelatex
+  html_document:
+    fig_height: 3
+    fig_width: 5
+  word_document:
+    fig_height: 3
+    fig_width: 5
+editor_options: 
+  markdown: 
+    wrap: 72
+---
+
+## Introduction
+
+This report provides an exploratory data analysis (EDA) of the US health insurance dataset to understand its structure, identify trends, and prepare it for further analysis.
+
+## Loading Required Libraries
+
+```{r}
+library(ggplot2)
+library(dplyr)
+library(summarytools)
+library(gridExtra)
+library(mplot)
+```
+
+## Loading the Dataset
+
+```{r}
+# Load dataset (replace 'health_insurance.csv' with your actual file path)
+data <- read.csv("insurance.csv")
+
+# Display the first few rows
+head(data)
+```
+
+## Dataset Overview
+
+### Summary Statistics
+
+```{r}
+summary(data)
+```
+
+### Checking Data Structure
+
+```{r}
+str(data)
+```
+
+### Checking for Missing Values
+
+```{r}
+colSums(is.na(data))
+```
+
+## Univariate Analysis
+
+### Combined Plots
+
+```{r}
+plot_age <- ggplot(data, aes(x = age)) +
+  geom_histogram(binwidth = 5, fill = "#1f77b4", color = "black") +
+  labs(title = "Age Distribution", x = "Age", y = "Count")
+
+plot_bmi <- ggplot(data, aes(x = bmi)) +
+  geom_histogram(binwidth = 2, fill = "#ff7f0e", color = "black") +
+  labs(title = "BMI Distribution", x = "BMI", y = "Count")
+
+plot_charges <- ggplot(data, aes(x = charges)) +
+  geom_histogram(binwidth = 2000, fill = "#2ca02c", color = "black") +
+  labs(title = "Charges Distribution", x = "Charges", y = "Count")
+
+grid.arrange(plot_age, plot_bmi, plot_charges, ncol = 3)
+```
+
+## Categorical Variables
+
+### Combined Plots
+
+```{r}
+plot_gender <- ggplot(data, aes(x = sex)) +
+  geom_bar(fill = "#9467bd") +
+  labs(title = "Gender Distribution", x = "Gender", y = "Count")
+
+plot_smoker <- ggplot(data, aes(x = smoker)) +
+  geom_bar(fill = "#d62728") +
+  labs(title = "Smoking Status", x = "Smoker", y = "Count")
+
+plot_region <- ggplot(data, aes(x = region)) +
+  geom_bar(fill = "#8c564b") +
+  labs(title = "Region Distribution", x = "Region", y = "Count")
+
+grid.arrange(plot_gender, plot_smoker, plot_region, ncol = 3)
+```
+
+## Bivariate Analysis
+
+### Charges vs. Age
+
+```{r}
+ggplot(data, aes(x = age, y = charges)) +
+  geom_point(alpha = 0.5, color = "#17becf") +
+  geom_smooth(method = "lm", color = "#e377c2", se = FALSE) +
+  labs(title = "Charges vs. Age", x = "Age", y = "Charges")
+```
+
+### Charges by Smoking Status
+
+```{r}
+ggplot(data, aes(x = smoker, y = charges, fill = smoker)) +
+  geom_boxplot() +
+  scale_fill_manual(values = c("#1f77b4", "#ff7f0e")) +
+  labs(title = "Charges by Smoking Status", x = "Smoking Status", y = "Charges")
+```
+
+### Charges by Region
+
+```{r}
+ggplot(data, aes(x = region, y = charges, fill = region)) +
+  geom_boxplot() +
+  scale_fill_brewer(palette = "Set2") +
+  labs(title = "Charges by Region", x = "Region", y = "Charges")
+```
+
+### BMI vs. Charges
+
+```{r}
+ggplot(data, aes(x = bmi, y = charges)) +
+  geom_point(alpha = 0.5, color = "#2ca02c") +
+  geom_smooth(method = "lm", color = "#e377c2", se = FALSE) +
+  labs(title = "BMI vs. Charges", x = "BMI", y = "Charges")
+```
+
+## Correlation Analysis
+
+### Correlation Matrix
+
+```{r}
+# Correlation matrix for numerical variables
+cor_matrix <- cor(data %>% select_if(is.numeric))
+cor_matrix
+```
+
+## RQ1:
+
+```{r}
+library(ggplot2)
+library(gridExtra)
+
+# Plot 1: Charges vs Age with a fitted line
+p1 <- ggplot(data, aes(x = age, y = charges)) +
+  geom_point(color = "blue") +
+  geom_smooth(method = "lm", color = "red", se = FALSE) + # Add linear regression line
+  labs(title = "Charges vs Age", x = "Age", y = "Charges") +
+  theme_minimal()
+
+# Plot 2: Charges vs BMI with a fitted line
+p2 <- ggplot(data, aes(x = bmi, y = charges)) +
+  geom_point(color = "green") +
+  geom_smooth(method = "lm", color = "red", se = FALSE) + # Add linear regression line
+  labs(title = "Charges vs BMI", x = "BMI", y = "Charges") +
+  theme_minimal()
+
+# Plot 3: Charges by Smoking Status (boxplot)
+p3 <- ggplot(data, aes(x = smoker, y = charges, fill = smoker)) +
+  geom_boxplot() +
+  labs(title = "Charges by Smoking Status", x = "Smoking Status", y = "Charges") +
+  theme_minimal()
+
+# Plot 4: Charges by Region (boxplot)
+p4 <- ggplot(data, aes(x = region, y = charges, fill = region)) +
+  geom_boxplot() +
+  labs(title = "Charges by Region", x = "Region", y = "Charges") +
+  theme_minimal()
+
+# Adjust plotting device size
+options(repr.plot.width = 20, repr.plot.height = 15) # Adjust dimensions for better layout
+
+# Arrange all plots in a grid
+grid.arrange(p1, p2, p3, p4, ncol = 2, heights = c(1, 1))
+
+```
+
+```{r}
+model <- lm(charges ~ age + smoker + bmi + bmi*smoker, data = data)
+summary(model)
+
+```
+
+## RQ2:
+
+```{r}
+# Filter data for smokers and non-smokers
+smokers <- data %>% filter(smoker == "yes")
+non_smokers <- data %>% filter(smoker == "no")
+
+# Create summary statistics for smokers and non-smokers
+summary_stats <- data %>%
+  group_by(smoker) %>%
+  summarise(
+    mean_charges = mean(charges),
+    median_charges = median(charges),
+    sd_charges = sd(charges),
+    count = n()
+  )
+
+# Display the summary statistics
+summary_stats
+
+```
+
+
+```{r}
+# Perform a t-test to compare charges between smokers and non-smokers
+t_test_result <- t.test(charges ~ smoker, data = data)
+
+# View the results
+t_test_result
+```
+## RQ3: Is there a significant difference in the insurance costs between male and female smokers?
+
+### Hypotheses
+
+-   **Null Hypothesis** ($H_0$): The mean insurance costs for male and female smokers are equal.
+-   **Alternative Hypothesis** (\$H_1\$):The mean insurance costs for male and female smokers are not equal.
+
+To answer this question, we will use a two-sample t-test.
+
+```{r}
+# Filter data for smokers only
+smokers <- data %>%
+  filter(smoker == "yes")
+
+# Create separate groups for male and female smokers
+male_smokers <- smokers %>% filter(sex == "male") %>% pull(charges)
+female_smokers <- smokers %>% filter(sex == "female") %>% pull(charges)
+
+# Display summary statistics
+summary_stats <- smokers %>%
+  group_by(sex) %>%
+  summarise(
+    mean_charges = mean(charges),
+    median_charges = median(charges),
+    sd_charges = sd(charges),
+    count = n()
+  )
+
+```
+
+```{r}
+
+# Display the summary table
+knitr::kable(summary_stats, caption = "Summary Statistics for Male and Female Smokers")
+```
+
+### Boxplot to visualize the distribution of insurance charges
+
+```{r}
+
+ggplot(smokers, aes(x = sex, y = charges, fill = sex)) +
+  geom_boxplot() +
+  labs(
+    title = "Insurance Costs for Male and Female Smokers",
+    x = "Gender",
+    y = "Insurance Charges"
+  ) +
+  theme_minimal()
+
+```
+
+### Perform a two-sample t-test
+
+```{r}
+t_test_result <- t.test(male_smokers, female_smokers, var.equal = TRUE)
+
+# Display the test results
+t_test_result
+
+```
+
+#### Summary
+Since the p-value (0.09448) is greater than 0.05 and the confidence interval includes zero, we fail to reject the null hypothesis. This suggests that there is no statistically significant difference in the mean insurance charges between male smokers and female smokers at the 5% significance level. However, there might still be a practical difference in the mean charges, as the confidence interval is quite wide, indicating variability in the data.
+
+## RQ4: Is there a significant difference in charges for individuals in different regions?
+
+Is there a significant difference in insurance charges among individuals living in different regions (northeast, northwest, southeast, southwest)?
+
+### Hypotheses
+
+-   **Null Hypothesis** ($H_0$): The mean insurance charges are equal across all regions.
+-   **Alternative Hypothesis** ($H_1$): At least one region has a significantly different mean insurance charge.
+
+We will use a one-way ANOVA test to answer this research question.
+
+------------------------------------------------------------------------
+
+```{r setup, include=TRUE}
+# Summarize charges by region
+summary_by_region <- data %>%
+  group_by(region) %>%
+  summarise(
+    mean_charges = mean(charges),
+    median_charges = median(charges),
+    sd_charges = sd(charges),
+    count = n()
+  )
+```
+
+```{r}
+# Display the summary table
+knitr::kable(summary_stats, caption = "Summary Statistics for Male and Female Smokers")
+```
+
+### **Boxplot to visualize the distribution of charges by region**
+
+```{r}
+ggplot(data, aes(x = region, y = charges, fill = region)) +
+  geom_boxplot() +
+  labs(
+    title = "Insurance Charges by Region",
+    x = "Region",
+    y = "Charges"
+  ) +
+  theme_minimal()
+```
+
+### Perform one-way ANOVA
+
+```{r}
+anova_result <- aov(charges ~ region, data = data)
+
+# Display the ANOVA table
+summary(anova_result)
+```
+
+#### Summary
+The results of the one-way ANOVA test indicate a statistically significant difference in mean insurance charges across the four regions (northeast, northwest, southeast, southwest). The F-statistic is 2.97, with a p-value of 0.0309, which is below the significance level of 0.05. Thus, we reject the null hypothesis that the mean insurance charges are the same across all regions. This finding suggests that regional differences in insurance charges exist. However, the ANOVA test does not specify which regions differ from each other. To determine the specific pairwise differences, we perform a post hoc analysis such as Tukey’s Honest Significant Difference (HSD) test.
+
+### Tukey's Honest Significant Difference (HSD) test
+
+```{r}
+post_hoc <- TukeyHSD(anova_result)
+
+# Display the results
+post_hoc
+```
+
+```{r}
+# Convert Tukey HSD results to a data frame
+tukey_df <- as.data.frame(post_hoc$region)
+tukey_df$Comparison <- rownames(tukey_df)
+
+# Plot the results
+ggplot(tukey_df, aes(x = Comparison, y = diff)) +
+  geom_point(size = 3, color = "blue") +
+  geom_errorbar(aes(ymin = lwr, ymax = upr), width = 0.2, color = "red") +
+  labs(
+    title = "Tukey HSD Results",
+    x = "Region Comparison",
+    y = "Difference in Means"
+  ) +
+  theme_minimal() +
+  coord_flip()
+
+
+```
+
+#### Summary
+
+From this plot, we can observe which region pairs show significant differences. For region pairs where the confidence interval does not include zero (southwest-southeast), we conclude that the insurance charges differ significantly. However, rest of the regions there is insufficient evidence to suggest a significant difference in insurance charges.
